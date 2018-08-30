@@ -19,6 +19,12 @@ module SolidusSubscriptions
       order = subscription_line_items.first.order
       configuration = subscription_configuration(subscription_line_items.first)
 
+      # If the order was a guest checkout, we need to create a User
+      unless order.user
+        order.user = find_or_create_stub_user(order)
+        order.save
+      end
+
       subscription_attributes = {
         user: order.user,
         line_items: subscription_line_items,
@@ -55,6 +61,19 @@ module SolidusSubscriptions
         subscription_line_item.interval_units,
         subscription_line_item.end_date
       )
+    end
+
+    def find_or_create_stub_user(order)
+      existing_user = Spree.user_class.where(email: order.email).first
+
+      random_password = '14378417384'
+      user_attrs = {
+        email: order.email,
+        password: random_password,
+        password_confirmation: random_password,
+      }
+
+      existing_user || Spree.user_class.create!(user_attrs)
     end
   end
 end
