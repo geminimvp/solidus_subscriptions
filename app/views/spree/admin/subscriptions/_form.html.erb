@@ -16,17 +16,17 @@
   </fieldset>
 
   <div class="row">
-    <%= content_tag :div, class: "field alpha three columns" do %>
+    <%= content_tag :div, class: "field alpha three columns subscription-inputs" do %>
       <%= f.label :actionable_date %>
       <%= f.text_field :actionable_date, class: "fullwidth datepicker" %>
     <% end %>
 
-    <div class='field three columns'>
+    <div class='field three columns subscription-inputs'>
       <%= f.label :inverval_length %>
-      <%= f.number_field :interval_length, class: "fullwidth" %>
+      <%= f.number_field :interval_length, min: 1, class: "fullwidth" %>
     </div>
 
-    <div class='field three columns'>
+    <div class='field three columns subscription-inputs'>
       <%= f.label :interval_units %>
       <%
         unit_values = SolidusSubscriptions::LineItem.interval_units.keys
@@ -41,7 +41,7 @@
       <div>
         <% units.each_with_index do |(value, name), i| %>
           <div>
-            <%= f.label :interval_units, for: "interval_units_#{ value }", class: 'fullwidth' do %>
+            <%= f.label :interval_units, for: "interval_units_#{ value }", class: 'fullwidth subscription-inputs' do %>
               <%= f.radio_button :interval_units, value, id: "interval_units_#{ value }" %>
               <%= name %>
             <% end %>
@@ -50,8 +50,8 @@
       </div>
     </div>
 
-    <div class="field omega three columns">
-      <%= f.label :end_date %>
+    <div class="field omega three columns subscription-inputs">
+      <%= f.label :end_date, 'End date (leave blank if ongoing)'%>
       <%= f.date_field :end_date, class: "required fullwidth" %>
     </div>
   </div>
@@ -61,12 +61,12 @@
       <legend><%= t('.subscription_line_item') %></legend>
 
       <div class="row">
-        <div class='field alpha two columns'>
+        <div class='field alpha two columns subscription-inputs'>
           <%= lf.label :quantity %>
           <%= lf.number_field :quantity, min: 1, class: "fullwidth" %>
         </div>
 
-        <div class="field columns ten omega">
+        <div class="field columns ten omega subscription-inputs">
           <%= lf.label :subscribable_id %>
           <%= lf.collection_select :subscribable_id, Spree::Variant.where(subscribable: true), :id, :pretty_name, {}, { class: "fullwidth select2" } %>
         </div>
