@@ -49,6 +49,8 @@ en:
           subscription_line_item: Subscription Line Item
       tab:
         subscriptions: Subscriptions
+      tab_description:
+        subscriptions: Subscriptions
     promotion_rule_types:
       subscription_promotion_rule:
         name: Subscription
