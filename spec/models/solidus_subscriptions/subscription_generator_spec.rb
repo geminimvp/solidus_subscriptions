@@ -4,13 +4,13 @@ RSpec.describe SolidusSubscriptions::SubscriptionGenerator do
   describe '.activate' do
     subject { described_class.activate(subscription_line_items) }
 
+    let(:order) { create(:order, :with_subscription_line_items, n_line_items: 2) }
+    let(:subscription_line_items) { order.subscription_line_items }
     let(:subscription_line_item) { subscription_line_items.first }
-    let(:user) { subscription_line_items.first.order.user }
-    let(:store) { subscription_line_items.first.order.store }
+    let(:user) { order.user }
+    let(:store) { order.store }
 
     it { is_expected.to be_a SolidusSubscriptions::Subscription }
-
-    let(:subscription_line_items) { build_list :subscription_line_item, 2 }
 
     it 'creates the correct number of subscriptions' do
       expect { subject }.

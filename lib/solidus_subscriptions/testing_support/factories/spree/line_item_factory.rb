@@ -1,5 +1,5 @@
 FactoryBot.modify do
-  factory :line_item do
+  factory :line_item, class: 'Spree::LineItem' do
     trait :with_subscription_line_items do
       transient do
         n_subscription_line_items { 1 }
