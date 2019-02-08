@@ -3,6 +3,14 @@ RSpec.describe Spree::Admin::SubscriptionsController, type: :request do
   extend Spree::TestingSupport::AuthorizationHelpers::Request
   stub_authorization!
 
+  before do
+    ActionController::Base.allow_forgery_protection = false
+  end
+
+  after do
+    ActionController::Base.allow_forgery_protection = true
+  end
+
   describe 'get :index' do
     subject do
       get spree.admin_subscriptions_path
