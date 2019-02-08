@@ -1,8 +1,13 @@
 require 'rails_helper'
 
 RSpec.describe SolidusSubscriptions::Config do
-  before { described_class.instance_variable_set('@gateway', nil) }
-  after { described_class.instance_variable_set('@gateway', nil) }
+  before {
+    @saved_gateway = described_class.instance_variable_get('@gateway')
+    described_class.instance_variable_set('@gateway', nil)
+  }
+  after {
+    described_class.instance_variable_set('@gateway', @saved_gateway)
+  }
 
   describe '.default_gateway' do
     let(:bogus) { build_stubbed(:credit_card_payment_method) }

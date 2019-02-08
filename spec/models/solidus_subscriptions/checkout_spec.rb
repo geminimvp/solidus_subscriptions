@@ -31,7 +31,7 @@ RSpec.describe SolidusSubscriptions::Checkout do
 
   context 'initialized with installments belonging to multiple users' do
     subject { checkout }
-    let(:installments) { build_stubbed_list :installment, 2 }
+    let(:installments) { create_list :installment, 2 }
 
     it 'raises an error' do
       expect { subject }.
@@ -254,9 +254,10 @@ RSpec.describe SolidusSubscriptions::Checkout do
     end
 
     context 'the user has store credit' do
-      it_behaves_like 'a completed checkout'
       let!(:store_credit_payment_method) { create :store_credit_payment_method }
-      let!(:store_credit) { create :store_credit, user: subscription_user }
+      let!(:store_credit) { create :store_credit, user: subscription_user, amount: 100.0 }
+
+      it_behaves_like 'a completed checkout'
 
       it 'has a valid store credit payment' do
         expect(order.payments.valid.store_credits).to be_present

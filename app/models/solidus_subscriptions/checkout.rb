@@ -24,19 +24,24 @@ module SolidusSubscriptions
     #
     # @return [Spree::Order]
     def process
+      warn "process: about to call populate"
       populate
+      warn "process: done with populate"
 
       # Installments are removed and set for future processing if they are
       # out of stock. If there are no line items left there is nothing to do
       return if installments.empty?
+      warn "process: past empty installments check"
 
       if checkout
+        warn "process: checkout success"
         Config.success_dispatcher_class.new(installments, order).dispatch
         return order
       end
 
       # A new order will only have 1 payment that we created
       if order.payments.any?(&:failed?)
+        warn "process: failed payments branch"
         Config.payment_failed_dispatcher_class.new(installments, order).dispatch
         installments.clear
         nil

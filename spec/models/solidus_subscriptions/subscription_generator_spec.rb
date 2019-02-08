@@ -10,7 +10,7 @@ RSpec.describe SolidusSubscriptions::SubscriptionGenerator do
 
     it { is_expected.to be_a SolidusSubscriptions::Subscription }
 
-    let(:subscription_line_items) { build_list :subscription_line_item, 2 }
+    let(:subscription_line_items) { create_list :subscription_line_item, 2 }
 
     it 'creates the correct number of subscriptions' do
       expect { subject }.
