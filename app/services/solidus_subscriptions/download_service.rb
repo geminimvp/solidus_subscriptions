@@ -20,21 +20,16 @@ module SolidusSubscriptions
           subscriptions.each do |subscription|
             user = subscription.user
             line_item = subscription.line_items.first.spree_line_item
-            unless line_item.present?
-              warn "no spree line item for this sub, skipping"
-              next
-            end
 
-            order = line_item.order
-
-            ship_address = subscription.shipping_address || order.ship_address
+            order = line_item&.order
+            ship_address = subscription&.shipping_address || order&.ship_address
 
             subscription_data = [
-              ship_address.firstname,
-              ship_address.lastname,
+              ship_address&.firstname || 'N/A',
+              ship_address&.lastname || 'N/A',
               user.email,
-              line_item.product.name,
-              line_item.variant.sku,
+              line_item&.product&.name || 'N/A',
+              line_item&.variant&.sku || 'N/A',
               subscription.created_at,
               subscription.actionable_date,
               subscription.state,
