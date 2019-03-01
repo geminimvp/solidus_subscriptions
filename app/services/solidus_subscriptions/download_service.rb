@@ -10,10 +10,12 @@ module SolidusSubscriptions
               .result(distinct: true)
               .includes(:line_items, :user)
               .joins(:line_items, :user)
+              .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
           else
             SolidusSubscriptions::Subscription
               .includes(:line_items, :user)
               .joins(:line_items, :user)
+              .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
           end
 
         CSV.generate(csv_options) do |csv|
@@ -21,15 +23,15 @@ module SolidusSubscriptions
             user = subscription.user
             line_item = subscription.line_items.first.spree_line_item
 
-            order = line_item&.order
-            ship_address = subscription&.shipping_address || order&.ship_address
+            order = line_item.order
+            ship_address = subscription.shipping_address || order.ship_address
 
             subscription_data = [
-              ship_address&.firstname || 'N/A',
-              ship_address&.lastname || 'N/A',
+              ship_address.firstname,
+              ship_address.lastname,
               user.email,
-              line_item&.product&.name || 'N/A',
-              line_item&.variant&.sku || 'N/A',
+              line_item.product.name,
+              line_item.variant.sku,
               subscription.created_at,
               subscription.actionable_date,
               subscription.state,
