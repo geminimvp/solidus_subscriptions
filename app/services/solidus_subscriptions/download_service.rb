@@ -16,6 +16,7 @@ module SolidusSubscriptions
               .includes(:line_items, :user)
               .joins(:line_items, :user)
               .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
+              .distinct('id')
           end
 
         CSV.generate(csv_options) do |csv|
