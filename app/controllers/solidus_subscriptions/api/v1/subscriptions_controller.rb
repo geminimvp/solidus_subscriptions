@@ -4,7 +4,31 @@ class SolidusSubscriptions::Api::V1::SubscriptionsController < Spree::Api::BaseC
   def update
     if @subscription.update(subscription_params)
       persist_subscription_addresses(@subscription)
-      render json: @subscription.to_json(include: [:line_items, :shipping_address, :billing_address, :wallet_payment_source])
+      render json: @subscription.to_json(
+        methods: [:total_cost],
+        include: [
+          :shipping_address,
+          :billing_address,
+          :wallet_payment_source,
+          line_items: {
+            include: {
+              spree_line_item: {
+                include: {
+                  variant: {
+                    methods: [:pretty_name],
+                    include: [
+                      :product,
+                      option_values: {
+                        include: [:option_type]
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        ]
+      )
     else
       render json: @subscription.errors.to_json, status: 422
     end
