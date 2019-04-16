@@ -96,9 +96,5 @@ module SolidusSubscriptions
         subscription.actionable_date = new_date
       end
     end
-
-    def update_spree_line_item_if_subscribable_id_changed
-      spree_line_item.update(variant_id: subscribable_id) if subscribable_id_changed?
-    end
   end
 end
