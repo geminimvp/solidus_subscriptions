@@ -14,7 +14,6 @@ module SolidusSubscriptions
     #
     # @return [SolidusSubscriptions::Subscription]
     def activate(subscription_line_items)
-      byebug
       return if subscription_line_items.empty?
 
       order = subscription_line_items.first.order
