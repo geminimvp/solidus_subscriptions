@@ -14,6 +14,7 @@ module SolidusSubscriptions
     #
     # @return [SolidusSubscriptions::Subscription]
     def activate(subscription_line_items)
+      byebug
       return if subscription_line_items.empty?
 
       order = subscription_line_items.first.order
@@ -25,11 +26,13 @@ module SolidusSubscriptions
         order.save
       end
 
+      # need to have team_id here
       subscription_attributes = {
         user: order.user,
         line_items: subscription_line_items,
         store: order.store,
         shipping_address: order.ship_address,
+        team_id: order.team.id,
         **configuration.to_h,
       }
 
