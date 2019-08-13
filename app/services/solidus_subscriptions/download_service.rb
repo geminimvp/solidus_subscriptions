@@ -3,18 +3,21 @@ require 'csv'
 module SolidusSubscriptions
   class DownloadService
     class << self
-      def to_csv(search:)
+      # keyword args ending in `:` are required
+      def to_csv(search:, team:)
         subscriptions =
           if search
             search
               .result(distinct: true)
               .includes(:line_items, :user)
               .joins(:line_items, :user)
+              .where(team_id: team.id)
               .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
           else
             SolidusSubscriptions::Subscription
               .includes(:line_items, :user)
               .joins(:line_items, :user)
+              .where(team_id: team.id)
               .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
               .distinct('id')
           end
