@@ -25,7 +25,6 @@ module SolidusSubscriptions
         order.save
       end
 
-      # need to have team_id here
       subscription_attributes = {
         user: order.user,
         line_items: subscription_line_items,

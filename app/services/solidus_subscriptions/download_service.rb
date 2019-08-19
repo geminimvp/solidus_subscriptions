@@ -10,6 +10,7 @@ module SolidusSubscriptions
               .result(distinct: true)
               .includes(:line_items, :user)
               .joins(:line_items, :user)
+              .where(team_id: team.id)
               .where('solidus_subscriptions_line_items.spree_line_item_id is not null')
           else
             SolidusSubscriptions::Subscription
