@@ -2,7 +2,7 @@
 #
 # Check https://circleci.com/docs/2.0/language-ruby/ for more details
 #
-version: 2
+version: 3
 jobs:
   build:
     docker:
@@ -23,9 +23,9 @@ jobs:
       # Download and cache dependencies
       - restore_cache:
           keys:
-          - v2-dependencies-{{ checksum "Gemfile.lock" }}
+          - v1-dependencies-{{ checksum "Gemfile.lock" }}
           # fallback to using the latest cache if no exact match is found
-          - v2-dependencies-
+          - v1-dependencies-
 
       - run:
           name: install dependencies
@@ -35,7 +35,7 @@ jobs:
       - save_cache:
           paths:
             - ./vendor/bundle
-          key: v2-dependencies-{{ checksum "Gemfile.lock" }}
+          key: v1-dependencies-{{ checksum "Gemfile.lock" }}
 
       # Dummy app setup
       - run: bundle exec rake first_run
