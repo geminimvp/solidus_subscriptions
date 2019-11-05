@@ -71,7 +71,6 @@ module SolidusSubscriptions
         order.update!
       end
       apply_promotions
-
       order.checkout_steps[0...-1].each do
         if order.state == "address"
           order.bill_address = bill_address
@@ -118,7 +117,8 @@ module SolidusSubscriptions
     end
 
     def ship_address
-      subscription.shipping_address || user.ship_address
+      # subscription.shipping_address || user.ship_address
+      subscription.shipping_address || user.ship_address || user.bill_address
     end
 
     def bill_address
