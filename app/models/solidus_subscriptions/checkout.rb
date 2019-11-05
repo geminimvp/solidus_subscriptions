@@ -71,7 +71,6 @@ module SolidusSubscriptions
         order.update!
       end
       apply_promotions
-
       order.checkout_steps[0...-1].each do
         if order.state == "address"
           order.bill_address = bill_address
@@ -81,6 +80,9 @@ module SolidusSubscriptions
         order.next!
       end
 
+      if order.failed
+        console.log('order failed')
+      end
       # Do this as a separate "quiet" transition so that it returns true or
       # false rather than raising a failed transition error
       order.complete
@@ -118,7 +120,8 @@ module SolidusSubscriptions
     end
 
     def ship_address
-      subscription.shipping_address || user.ship_address
+      # subscription.shipping_address || user.ship_address
+      subscription.shipping_address || user.ship_address || user.bill_address
     end
 
     def bill_address
