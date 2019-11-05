@@ -80,9 +80,6 @@ module SolidusSubscriptions
         order.next!
       end
 
-      if order.failed
-        console.log('order failed')
-      end
       # Do this as a separate "quiet" transition so that it returns true or
       # false rather than raising a failed transition error
       order.complete
