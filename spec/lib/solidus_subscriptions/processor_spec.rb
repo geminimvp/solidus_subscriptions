@@ -4,11 +4,14 @@ RSpec.describe SolidusSubscriptions::Processor, :checkout do
   include ActiveJob::TestHelper
   around { |e| perform_enqueued_jobs { e.run } }
 
-  let!(:user) do
-    create(:user, :subscription_user).tap do |user|
-      create(:credit_card, gateway_customer_profile_id: 'BGS-123', user: user, default: true)
-    end
-  end
+  let!(:user) { create(:user, :subscription_user) }
+  let!(:credit_card) {
+    card = create(:credit_card, gateway_customer_profile_id: 'BGS-123', user: user)
+    wallet_payment_source = user.wallet.add(card)
+    user.wallet.default_wallet_payment_source = wallet_payment_source
+    user.save
+    card
+  }
 
   let!(:actionable_subscriptions) { create_list(:subscription, 2, :actionable, user: user) }
   let!(:pending_cancellation_subscriptions) do
@@ -114,5 +117,28 @@ RSpec.describe SolidusSubscriptions::Processor, :checkout do
   describe '#build_jobs' do
     subject { described_class.new([user]).build_jobs }
     it_behaves_like 'a subscription order'
+
+    context 'when a user has an old unfulfilled installment' do
+      let!(:failed_user) { create :user, :subscription_user }
+      let!(:fail_credit_card) {
+        card = create(:credit_card, gateway_customer_profile_id: 'BGS-123', user: failed_user)
+        wallet_payment_source = failed_user.wallet.add(card)
+        failed_user.wallet.default_wallet_payment_source = wallet_payment_source
+        failed_user.save
+        card
+      }
+
+      let!(:failed_installment) do
+        create(:installment, :failed, created_at: 2.months.ago, subscription_traits: [actionable_date: 1.day.ago, created_at: 2.months.ago, user: failed_user])
+      end
+      let(:failed_subscription) { failed_installment.subscription }
+
+      it 'does not create a new installment' do
+        expect {
+          described_class.new([failed_user]).build_jobs
+        }.to_not change(SolidusSubscriptions::Installment, :count)
+      end
+
+    end
   end
 end

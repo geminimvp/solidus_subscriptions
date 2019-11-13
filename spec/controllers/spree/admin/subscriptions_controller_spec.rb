@@ -3,13 +3,52 @@ RSpec.describe Spree::Admin::SubscriptionsController, type: :request do
   extend Spree::TestingSupport::AuthorizationHelpers::Request
   stub_authorization!
 
-  describe 'get /admin/subscriptions' do
+  describe 'get :index' do
     subject do
       get spree.admin_subscriptions_path
       response
     end
 
     it { is_expected.to be_successful }
+
+    context 'with a frozen time' do
+      before { Timecop.freeze(2018, 11, 10) }
+
+      context 'with subscription data' do
+        let(:subscription_line_items) { create_list(:subscription_line_item, 6) }
+        let!(:recurring_subscription) { create(:subscription, actionable_date: Date.current, line_items: subscription_line_items[0..1], interval_length: 2, interval_units: :week) }
+        let!(:canceled_subscription) { create(:subscription, actionable_date: Date.tomorrow, state: :canceled, line_items: [subscription_line_items[2]]) }
+        let!(:today_subscription) { create(:subscription, actionable_date: Date.current, line_items: [subscription_line_items[3]]) }
+        let!(:tomorrow_subscription) { create(:subscription, actionable_date: Date.tomorrow, line_items: [subscription_line_items[4]]) }
+        let!(:next_month_sub) { create(:subscription, actionable_date: Date.current.next_month, line_items: [subscription_line_items[5]]) }
+
+        it 'assigns quick stats' do
+          subject
+          expect(assigns(:total_active_subs)).to eq 4
+          expect(assigns(:total_active_subs_this_month)).to eq 3
+          expect(assigns(:monthly_recurring_revenue)).to eq 40.0 # revenue of all active subscriptions with one recurring
+          expect(assigns(:todays_recurring_revenue)).to eq 30.0 # revenue of recurring and today subscription
+          expect(assigns(:tomorrows_recurring_revenue)).to eq 10.0 # revenue of tomorrow subscription
+        end
+
+        it 'rounds the stats to 2 digits' do
+          subscription_line_items.each { |line_item| line_item.spree_line_item.update(price: 0.10123e2) }
+          subject
+          expect(assigns(:monthly_recurring_revenue)).to eq 40.48 # revenue of all active subscriptions with one recurring
+          expect(assigns(:todays_recurring_revenue)).to eq 30.36 # revenue of recurring and today subscription
+          expect(assigns(:tomorrows_recurring_revenue)).to eq 10.12 # revenue of tomorrow subscription
+        end
+
+        context 'with a subscription line item that has no spree line item' do
+          before { today_subscription.line_items.first.update(spree_line_item: nil) }
+
+          it 'does not blow up' do
+            subject
+            expect(assigns(:todays_recurring_revenue)).to eq 20.0
+          end
+        end
+      end
+    end
   end
 
   describe 'GET :new' do

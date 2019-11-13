@@ -56,7 +56,7 @@ module SolidusSubscriptions
     def order
       @order ||= Spree::Order.create(
         user: user,
-        email: user.email,
+        email: subscription.email || user.email,
         store: subscription.store || Spree::Store.default,
         subscription_order: true
       )
@@ -65,14 +65,17 @@ module SolidusSubscriptions
     private
 
     def checkout
-      order.update!
+      if Spree.solidus_gem_version >= Gem::Version.new('2.4.0')
+        order.recalculate
+      else
+        order.update!
+      end
       apply_promotions
 
       order.checkout_steps[0...-1].each do
         if order.state == "address"
-          binding.pry
-          order.ship_address = ship_address
           order.bill_address = bill_address
+          order.ship_address = ship_address
         end
         create_payment if order.state == "payment"
         order.next!
@@ -102,6 +105,7 @@ module SolidusSubscriptions
       end
 
       return if installments.empty?
+
       order_builder.add_line_items(order_line_items)
     end
 
@@ -117,8 +121,16 @@ module SolidusSubscriptions
       subscription.shipping_address || user.ship_address
     end
 
+    def bill_address
+      subscription.billing_address || ship_address
+    end
+
     def active_card
-      user.credit_cards.default.last
+      if SolidusSupport.solidus_gem_version < Gem::Version.new("2.2.0")
+        user.credit_cards.default.last
+      else
+        subscription.wallet_payment_source.try(:payment_source) || user.wallet.default_wallet_payment_source.payment_source
+      end
     end
 
     def create_payment

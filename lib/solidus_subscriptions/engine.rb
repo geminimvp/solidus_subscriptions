@@ -29,6 +29,7 @@ module SolidusSubscriptions
 
     initializer 'subscriptions_backend' do
       next unless Spree::Backend::Config.respond_to?(:menu_items)
+
       Spree::Backend::Config.configure do |config|
         config.menu_items << config.class::MenuItem.new(
           [:subscriptions],
@@ -37,6 +38,10 @@ module SolidusSubscriptions
           condition: ->{ can?(:admin, SolidusSubscriptions::Subscription) }
         )
       end
+    end
+
+    initializer 'Money localization setup' do
+      Money.locale_backend = :i18n
     end
 
     def self.activate

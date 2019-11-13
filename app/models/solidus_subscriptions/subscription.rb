@@ -5,20 +5,26 @@ module SolidusSubscriptions
   class Subscription < ActiveRecord::Base
     include Interval
 
-    PROCESSING_STATES = [:pending, :failed, :success]
+    PROCESSING_STATES = [:pending, :failed, :success].freeze
 
-    belongs_to :user, class_name: Spree.user_class
+    belongs_to :user, class_name: Spree.user_class.to_s
     has_many :line_items, class_name: 'SolidusSubscriptions::LineItem', inverse_of: :subscription
     has_many :installments, class_name: 'SolidusSubscriptions::Installment'
     belongs_to :store, class_name: 'Spree::Store'
     belongs_to :shipping_address, class_name: 'Spree::Address'
+    belongs_to :billing_address, class_name: 'Spree::Address'
+    belongs_to :wallet_payment_source, class_name: 'Spree::WalletPaymentSource'
 
-    validates :user, presence: :true
+    validates :user, presence: true
     validates :skip_count, :successive_skip_count, presence: true, numericality: { greater_than_or_equal_to: 0 }
     validates :interval_length, numericality: { greater_than: 0 }
 
     accepts_nested_attributes_for :shipping_address
+    accepts_nested_attributes_for :billing_address
     accepts_nested_attributes_for :line_items, allow_destroy: true
+    accepts_nested_attributes_for :wallet_payment_source
+
+    after_update :create_payment_method_profile
 
     # The following methods are delegated to the associated
     # SolidusSubscriptions::LineItem
@@ -31,6 +37,11 @@ module SolidusSubscriptions
     scope :actionable, (lambda do
       where("#{table_name}.actionable_date <= ?", Time.zone.now).
         where.not(state: ["canceled", "inactive"])
+    end)
+
+    scope :actionable_between, (lambda do |date_range|
+      where(actionable_date: date_range).
+        where.not(state: ['canceled', 'inactive'])
     end)
 
     # Find subscriptions based on their processing state. This state is not a
@@ -87,8 +98,7 @@ module SolidusSubscriptions
     #   will no longer be processed
     state_machine :state, initial: :active do
       event :cancel do
-        transition [:active, :pending_cancellation] => :canceled,
-          if: ->(subscription) { subscription.can_be_canceled? }
+        transition [:active, :pending_cancellation] => :canceled, if: ->(subscription) { subscription.can_be_canceled? }
 
         transition active: :pending_cancellation
       end
@@ -96,8 +106,7 @@ module SolidusSubscriptions
       after_transition to: :canceled, do: :advance_actionable_date
 
       event :deactivate do
-        transition active: :inactive,
-          if: ->(subscription) { subscription.can_be_deactivated? }
+        transition active: :inactive, if: ->(subscription) { subscription.can_be_deactivated? }
       end
 
       event :activate do
@@ -127,6 +136,7 @@ module SolidusSubscriptions
     # pending cancellation will still be processed.
     def can_be_canceled?
       return true if actionable_date.nil?
+
       (actionable_date - Config.minimum_cancellation_notice).future?
     end
 
@@ -158,6 +168,7 @@ module SolidusSubscriptions
     #   eligible to be processed.
     def next_actionable_date
       return nil unless active?
+
       new_date = (actionable_date || Time.zone.now)
       (new_date + interval).beginning_of_minute
     end
@@ -189,7 +200,20 @@ module SolidusSubscriptions
     #   if the last installment was fulfilled.
     def processing_state
       return 'pending' if installments.empty?
+
       installments.last.fulfilled? ? 'success' : 'failed'
+    end
+
+    def total_revenue
+      line_items.reduce(0.0) do |total_cost, line_item|
+        total_cost + line_item.spree_line_item.try(:total_before_tax).to_f
+      end
+    end
+
+    def total_cost
+      line_items.reduce(0.0) do |total_cost, line_item|
+        total_cost + line_item.spree_line_item.try(:total).to_f
+      end
     end
 
     private
@@ -212,6 +236,13 @@ module SolidusSubscriptions
 
     def line_item
       line_items.first
+    end
+
+    def create_payment_method_profile
+      return if wallet_payment_source&.payment_source.nil?
+
+      payment = OpenStruct.new(source: wallet_payment_source.payment_source)
+      payment.source.payment_method.create_profile(payment)
     end
   end
 end

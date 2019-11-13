@@ -6,7 +6,7 @@ module SolidusSubscriptions
       # subclass from the the dispatcher you are replacing, and call super
       # from within the #dispatch method (if you override it)
       #
-      # This handler is called when a susbcription order is successfully placed.
+      # This handler is called when a subscription order is successfully placed.
       attr_writer :success_dispatcher_class
       def success_dispatcher_class
         @success_dispatcher_class ||= ::SolidusSubscriptions::SuccessDispatcher
@@ -81,7 +81,8 @@ module SolidusSubscriptions
         :subscribable_id,
         :interval_length,
         :interval_units,
-        :end_date
+        :end_date,
+        spree_line_item_attributes: [:id, :quantity, :variant_id]
       ]
     end
 

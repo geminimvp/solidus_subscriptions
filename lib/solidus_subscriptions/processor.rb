@@ -57,11 +57,11 @@ module SolidusSubscriptions
     # instance
     def build_jobs
       users.map do |user|
-        installemts_by_address_and_user = installments(user).group_by do |i|
+        installments_by_address_and_user = installments(user).group_by do |i|
           i.subscription.shipping_address_id
         end
 
-        installemts_by_address_and_user.values.each do |grouped_installments|
+        installments_by_address_and_user.values.each do |grouped_installments|
           ProcessInstallmentsJob.perform_later grouped_installments.map(&:id)
         end
       end
@@ -71,18 +71,18 @@ module SolidusSubscriptions
 
     def subscriptions_by_id
       @subscriptions_by_id ||= Subscription.
-        actionable.
-        includes(:line_items, :user).
-        where(user_id: user_ids).
-        group_by(&:user_id)
+                               actionable.
+                               includes(:line_items, :user).
+                               where(user_id: user_ids).
+                               group_by(&:user_id)
     end
 
     def retry_installments
       @failed_installments ||= Installment.
-        actionable.
-        includes(:subscription).
-        where(solidus_subscriptions_subscriptions: { user_id: user_ids }).
-        group_by { |i| i.subscription.user_id }
+                               actionable.
+                               includes(:subscription).
+                               where(solidus_subscriptions_subscriptions: { user_id: user_ids }).
+                               group_by { |i| i.subscription.user_id }
     end
 
     def installments(user)
@@ -96,8 +96,8 @@ module SolidusSubscriptions
           sub.advance_actionable_date
           sub.cancel! if sub.pending_cancellation?
           sub.deactivate! if sub.can_be_deactivated?
-          sub.installments.create!
-        end
+          sub.installments.create! if sub.installments.actionable.empty?
+        end.compact
       end
     end
 

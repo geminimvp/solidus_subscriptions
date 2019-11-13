@@ -19,12 +19,18 @@ module SolidusSubscriptions
       order = subscription_line_items.first.order
       configuration = subscription_configuration(subscription_line_items.first)
 
+      # If the order was a guest checkout, we need to create a User
+      unless order.user
+        order.user = SolidusSubscriptions::UserGenerator.find_or_create(order)
+        order.save
+      end
+
       subscription_attributes = {
         user: order.user,
         line_items: subscription_line_items,
         store: order.store,
         shipping_address: order.ship_address,
-        **configuration.to_h
+        **configuration.to_h,
       }
 
       Subscription.create!(subscription_attributes) do |sub|
@@ -43,8 +49,7 @@ module SolidusSubscriptions
     def group(subscription_line_items)
       subscription_line_items.group_by do |li|
         subscription_configuration(li)
-      end.
-      values
+      end.values
     end
 
     private
@@ -53,7 +58,7 @@ module SolidusSubscriptions
       SubscriptionConfiguration.new(
         subscription_line_item.interval_length,
         subscription_line_item.interval_units,
-        subscription_line_item.end_date
+        subscription_line_item.end_date,
       )
     end
   end
