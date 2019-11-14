@@ -24,6 +24,7 @@ module Spree
       end
 
       def new
+        @subscription_json = modify_json_payload
         @subscription.line_items.new
       end
 
@@ -104,6 +105,33 @@ module Spree
 
         multiplier
       end
+
+      def braintree_gateway
+        SolidusPaypalBraintree::Gateway.first!
+      end
+
+      def braintree_token
+        braintree_gateway.generate_token
+      end
+
+      def braintree_environment
+        braintree_gateway[:preferences][:environment]
+      end
+
+      def braintree_payment_method_id
+        Spree::PaymentMethod.find_by(active: true, type: 'SolidusPaypalBraintree::Gateway').id
+      end
+
+      def modify_json_payload
+        payload = {
+          braintree_token: braintree_token,
+          braintree_environment: braintree_environment,
+          user_token: current_spree_user.spree_api_key,
+          braintree_method_id: braintree_payment_method_id,
+        }
+        JSON.generate(payload);
+      end
     end
   end
 end
+
