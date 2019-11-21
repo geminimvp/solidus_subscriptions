@@ -127,13 +127,15 @@ module Spree
       end
 
       def modify_json_payload
-        binding.pry
         payload = {
           braintree_token: braintree_token,
           braintree_environment: braintree_environment,
           user_token: current_spree_user.spree_api_key,
           braintree_method_id: braintree_payment_method_id,
         }
+        if @subscription.persisted?
+          payload[:subscription] = SubscriptionSerializer.new(@subscription).as_json
+        end
         JSON.generate(payload);
       end
     end
