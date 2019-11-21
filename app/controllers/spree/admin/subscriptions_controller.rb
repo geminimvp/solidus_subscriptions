@@ -3,6 +3,7 @@ module Spree
     class SubscriptionsController < ResourceController
       skip_before_action :load_resource, only: :index
       before_action :gather_stats, only: :index
+      before_action :set_subscription_json, only: [:new, :edit]
 
       def index
         @search = SolidusSubscriptions::Subscription.
@@ -24,7 +25,6 @@ module Spree
       end
 
       def new
-        @subscription_json = modify_json_payload
         @subscription.line_items.new
       end
 
@@ -70,6 +70,10 @@ module Spree
 
       def model_class
         ::SolidusSubscriptions::Subscription
+      end
+
+      def set_subscription_json
+        @subscription_json = modify_json_payload
       end
 
       def gather_stats
@@ -123,6 +127,7 @@ module Spree
       end
 
       def modify_json_payload
+        binding.pry
         payload = {
           braintree_token: braintree_token,
           braintree_environment: braintree_environment,
