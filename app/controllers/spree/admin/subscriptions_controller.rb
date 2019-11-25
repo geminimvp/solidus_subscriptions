@@ -134,7 +134,7 @@ module Spree
           braintree_method_id: braintree_payment_method_id,
         }
         if @subscription.persisted?
-          payload[:subscription] = SubscriptionSerializer.new(@subscription).as_json
+          payload[:subscription] = SubscriptionSerializer.new(@subscription).as_json(include: '**')
         end
         JSON.generate(payload);
       end
