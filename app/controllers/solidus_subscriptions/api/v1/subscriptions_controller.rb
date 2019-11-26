@@ -12,7 +12,6 @@ class SolidusSubscriptions::Api::V1::SubscriptionsController < Spree::Api::BaseC
   end
 
   def update
-    binding.pry
     if @subscription.update(subscription_params)
       persist_subscription_addresses(@subscription)
       if params[:full_json]
