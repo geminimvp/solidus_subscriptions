@@ -3,7 +3,6 @@ module Spree
     class SubscriptionsController < ResourceController
       skip_before_action :load_resource, only: :index
       before_action :gather_stats, only: :index
-      before_action :set_subscription_json, only: [:new, :edit]
 
       def index
         @search = SolidusSubscriptions::Subscription.
@@ -72,10 +71,6 @@ module Spree
         ::SolidusSubscriptions::Subscription
       end
 
-      def set_subscription_json
-        @subscription_json = modify_json_payload
-      end
-
       def gather_stats
         this_month_range = Time.zone.now.beginning_of_month..Time.zone.now.end_of_month
         today_range = Time.zone.now.beginning_of_day..Time.zone.now.end_of_day
@@ -110,34 +105,6 @@ module Spree
         multiplier
       end
 
-      def braintree_gateway
-        SolidusPaypalBraintree::Gateway.first!
-      end
-
-      def braintree_token
-        braintree_gateway.generate_token
-      end
-
-      def braintree_environment
-        braintree_gateway[:preferences][:environment]
-      end
-
-      def braintree_payment_method_id
-        Spree::PaymentMethod.find_by(active: true, type: 'SolidusPaypalBraintree::Gateway').id
-      end
-
-      def modify_json_payload
-        payload = {
-          braintree_token: braintree_token,
-          braintree_environment: braintree_environment,
-          user_token: current_spree_user.spree_api_key,
-          braintree_method_id: braintree_payment_method_id,
-        }
-        if @subscription.persisted?
-          payload[:subscription] = SubscriptionSerializer.new(@subscription).as_json(include: '**')
-        end
-        JSON.generate(payload);
-      end
     end
   end
 end

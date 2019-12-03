@@ -58,7 +58,7 @@ class SolidusSubscriptions::Api::V1::SubscriptionsController < Spree::Api::BaseC
       shipping_address_attributes: Spree::PermittedAttributes.address_attributes,
       billing_address_attributes: Spree::PermittedAttributes.address_attributes,
       wallet_payment_source_attributes: [:user_id, payment_source_attributes: [:source_type, :nonce, :payment_type, :payment_method_id]]
-    ).merge(team_id: current_team.id)
+    )
   end
 
   def line_item_attributes
