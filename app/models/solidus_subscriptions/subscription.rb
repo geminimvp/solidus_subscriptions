@@ -239,7 +239,7 @@ module SolidusSubscriptions
     end
 
     def create_payment_method_profile
-      return if wallet_payment_source&.payment_source.nil?
+      return if (!wallet_payment_source_id_changed? && !wallet_payment_source&.payment_source_id_changed?) || wallet_payment_source&.payment_source.nil?
 
       payment = OpenStruct.new(source: wallet_payment_source.payment_source)
       payment.source.payment_method.create_profile(payment)

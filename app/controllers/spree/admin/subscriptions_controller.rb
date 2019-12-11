@@ -104,6 +104,8 @@ module Spree
 
         multiplier
       end
+
     end
   end
 end
+

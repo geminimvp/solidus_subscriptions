@@ -1,6 +1,16 @@
 class SolidusSubscriptions::Api::V1::SubscriptionsController < Spree::Api::BaseController
   before_action :load_subscription, only: [:cancel, :update, :skip]
 
+  def create
+    authorize! :create, SolidusSubscriptions::Subscription
+    @subscription = SolidusSubscriptions::Subscription.new(subscription_params)
+    if @subscription.save
+      render json: @subscription, status: 201
+    else
+      render json: @subscription.errors.to_json, status: 422
+    end
+  end
+
   def update
     if @subscription.update(subscription_params)
       persist_subscription_addresses(@subscription)
@@ -39,9 +49,11 @@ class SolidusSubscriptions::Api::V1::SubscriptionsController < Spree::Api::BaseC
   def subscription_params
     params.require(:subscription).permit(
       :email,
+      :user_id,
       :actionable_date,
       :interval_length,
       :interval_units,
+      :end_date,
       line_items_attributes: line_item_attributes,
       shipping_address_attributes: Spree::PermittedAttributes.address_attributes,
       billing_address_attributes: Spree::PermittedAttributes.address_attributes,

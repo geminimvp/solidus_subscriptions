@@ -1,6 +1,6 @@
 module Spree
   class VariantSerializer < ActiveModel::Serializer
-    attributes :id, :sku, :options_text, :product_id, :price_hash
+    attributes :id, :name, :sku, :options_text, :product_id, :price_hash
 
     has_one :product
     has_many :option_values
