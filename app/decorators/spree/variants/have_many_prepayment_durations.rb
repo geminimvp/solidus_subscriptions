@@ -16,4 +16,4 @@ module Spree
   end
 end
 
-Spree::Variant.prepend(Spree::Variants::HaveManyPrepaymentDurations)
+Spree::Variant.prepend(::Spree::Variants::HaveManyPrepaymentDurations)
