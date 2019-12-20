@@ -17,6 +17,7 @@ module SolidusSubscriptions
       :prices,
       class_name: 'Spree::Price',
       foreign_key: 'solidus_subscriptions_frequency_id',
+      inverse_of: 'frequency'
     )
 
     accepts_nested_attributes_for :prices
