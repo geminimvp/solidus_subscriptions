@@ -23,5 +23,10 @@ module SolidusSubscriptions
     accepts_nested_attributes_for :prices
 
     validates :length, :units, :spree_variant, presence: true
+
+    def find_or_build_default_price
+      default_price || build_default_price(Spree::Config.default_pricing_options.desired_attributes.merge(variant_id: 0))
+    end
+
   end
 end

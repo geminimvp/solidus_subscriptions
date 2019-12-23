@@ -7,6 +7,7 @@ module Spree
           :frequency,
           class_name: 'SolidusSubscriptions::Frequency',
           foreign_key: 'solidus_subscriptions_frequency_id',
+          inverse_of: 'prices'
         )
       end
     end
