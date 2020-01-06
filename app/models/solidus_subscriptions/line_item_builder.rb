@@ -21,11 +21,12 @@ module SolidusSubscriptions
     def spree_line_items
       line_items = subscription_line_items.map do |subscription_line_item|
         variant = subscribables.fetch(subscription_line_item.subscribable_id)
+        frequency = variant.frequencies.find_by(length: subscription_line_item.interval_length, units: subscription_line_item.interval_units)
 
         raise UnsubscribableError.new(variant) unless variant.subscribable?
         next unless variant.can_supply?(subscription_line_item.quantity)
 
-        Spree::LineItem.new(variant: variant, quantity: subscription_line_item.quantity)
+        Spree::LineItem.new(variant: variant, quantity: subscription_line_item.quantity, price: frequency.price)
       end
 
       # Either all line items for an installment are fulfilled or none are

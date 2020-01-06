@@ -28,5 +28,14 @@ module SolidusSubscriptions
       default_price || build_default_price(Spree::Config.default_pricing_options.desired_attributes.merge(variant_id: 0))
     end
 
+    def price_hash
+      pricing_options = Spree::Config.default_pricing_options
+      EngineCms::VariantSerializer.new(spree_variant).price_hash(pricing_options, price)
+    end
+
+    def price
+      default_price&.price || spree_variant.price
+    end
+
   end
 end
