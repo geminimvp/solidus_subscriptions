@@ -24,7 +24,12 @@ module Spree
           price = frequency.price
         end
 
-        @options = { price: price }
+        @options = {
+          price: price,
+          subscription_match: true,
+          frequency: frequency,
+          end_date: params[:subscription_line_item][:end_date]
+        }
       end
     end
 
