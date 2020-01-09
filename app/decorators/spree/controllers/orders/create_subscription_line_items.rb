@@ -22,8 +22,8 @@ module Spree
         private
 
         def handle_subscription_line_items
-          line_item = @current_order.line_items.find_by(variant_id: params[:variant_id])
-          create_subscription_line_item(line_item)
+          most_current_variant_line_item = @current_order.line_items.where(variant_id: params[:variant_id]).last
+          create_subscription_line_item(most_current_variant_line_item)
         end
       end
     end
