@@ -8,6 +8,7 @@ module Spree
     private
 
     def apply_options
+      @options = {}
       if params[:subscription_line_item]
         frequency = find_frequency(params[:variant_id])
 
@@ -18,7 +19,7 @@ module Spree
           price = frequency.price
         end
 
-        @options = { price: price }
+        @options[:price] = price
       end
     end
 
