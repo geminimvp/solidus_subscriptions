@@ -82,6 +82,7 @@ module SolidusSubscriptions
         :interval_length,
         :interval_units,
         :end_date,
+        :prepaid,
         spree_line_item_attributes: [:id, :quantity, :variant_id]
       ]
     end
