@@ -39,7 +39,7 @@ module SolidusSubscriptions
     end
 
     def as_json(**options)
-      options[:methods] ||= [:dummy_line_item, :next_actionable_date]
+      options[:methods] ||= [:dummy_line_item, :next_actionable_date, :prepayment_duration]
       super(options)
     end
 
@@ -58,6 +58,11 @@ module SolidusSubscriptions
       subscription.try!(:interval) || super
     end
 
+    def prepayment_duration
+      days_between = (end_date.to_date - created_at.to_date).to_i
+      days_between.days / interval_length.send(interval_units)
+    end
+
     private
 
     # Get a placeholder order for calculating the values of future
@@ -66,7 +71,6 @@ module SolidusSubscriptions
     def dummy_order
       order = spree_line_item ? spree_line_item.order.dup : Spree::Order.create
       order.ship_address = subscription.shipping_address || subscription.user.ship_address if subscription
-
       order.freeze
     end
 
