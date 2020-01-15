@@ -59,8 +59,10 @@ module SolidusSubscriptions
     end
 
     def prepayment_duration
-      days_between = (end_date.to_date - created_at.to_date).to_i
-      days_between.days / interval_length.send(interval_units)
+      if end_date?
+        days_between = (end_date.to_date - created_at.to_date).to_i
+        days_between.days / interval_length.send(interval_units)
+      end
     end
 
     private
