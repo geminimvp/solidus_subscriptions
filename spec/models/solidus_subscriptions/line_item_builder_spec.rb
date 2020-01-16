@@ -23,6 +23,41 @@ RSpec.describe SolidusSubscriptions::LineItemBuilder do
       expect(subject.first).to have_attributes expected_attributes
     end
 
+    describe 'spree_line_item price' do
+      it 'sets the price to the variant price' do
+        expect(subject.first.price).to eq variant.price
+      end
+
+      context 'with a frequency price' do
+        let(:price) { create(:price, amount: 0.2e2) }
+        let!(:frequency) do
+          create(
+            :frequency,
+            length: subscription_line_item.interval_length,
+            units: subscription_line_item.interval_units,
+            prices: [price],
+            spree_variant: frequency_variant
+          )
+        end
+
+        context 'on the variant' do
+          let(:frequency_variant) { variant }
+
+          it 'sets the spree_line_item price to the frequency price' do
+            expect(subject.first.price).to eq price.amount
+          end
+        end
+
+        context 'on the master variant' do
+          let(:frequency_variant) { variant.product.master }
+
+          it 'sets the spree_line_item price to the frequency price' do
+            expect(subject.first.price).to eq price.amount
+          end
+        end
+      end
+    end
+
     context 'the variant is not subscribable' do
       let!(:variant) { create(:variant) }
 

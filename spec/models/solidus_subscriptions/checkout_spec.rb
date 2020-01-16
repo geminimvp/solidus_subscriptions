@@ -11,6 +11,7 @@ RSpec.describe SolidusSubscriptions::Checkout do
     card
   }
   let(:payment_method) { create(:payment_method) }
+  let!(:store_credit_payment_method) { create(:store_credit_payment_method) }
   let(:installments) { create_list(:installment, 2, installment_traits) }
 
   let(:installment_traits) do
@@ -67,6 +68,25 @@ RSpec.describe SolidusSubscriptions::Checkout do
 
       it 'has a payment' do
         expect(order.payments.valid).to be_present
+      end
+
+      context 'with a prepaid subscription' do
+        let(:installment_traits) do
+          {
+            subscription_traits: [{
+              user: subscription_user,
+              prepaid: true,
+              line_item_traits: [{
+                spree_line_item: root_order.line_items.first
+              }]
+            }]
+          }
+        end
+
+        it 'has a store credit payment' do
+          expect(order.payments.valid).to be_present
+          expect(order.payments.valid.last.source_type).to eq 'Spree::StoreCredit'
+        end
       end
 
       it 'has the correct totals' do

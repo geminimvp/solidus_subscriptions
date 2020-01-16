@@ -26,6 +26,7 @@ RSpec.describe SolidusSubscriptions::SubscriptionGenerator do
         interval_length: subscription_line_item.interval_length,
         interval_units: subscription_line_item.interval_units,
         end_date: subscription_line_item.end_date,
+        prepaid: subscription_line_item.prepaid,
         store: store
       )
 
