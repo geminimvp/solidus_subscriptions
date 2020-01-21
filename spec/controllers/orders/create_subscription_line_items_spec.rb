@@ -69,6 +69,38 @@ RSpec.describe Spree::Controllers::Orders::CreateSubscriptionLineItems, type: :c
           subscription_line_item_params[:subscription_line_item]
         )
       end
+
+      it 'defaults to the variant price' do
+        subject
+        expect(Spree::LineItem.last.price).to eq variant.price
+      end
+
+      context 'with a frequency price' do
+        let(:price) { create(:price, amount: 0.2e2) }
+        let!(:frequency) { create(:frequency, length: 30, units: 'day', prices: [price], spree_variant: variant) }
+
+        it 'uses the frequency price for the line item' do
+          expect { subject }.to change(Spree::LineItem, :count).by(1)
+          expect(Spree::LineItem.last.price).to eq price.amount
+        end
+
+        context 'with a prepayment duration' do
+          it 'calculates the total price of the duration' do
+            subscription_line_item_params[:subscription_line_item][:prepayment_duration] = 4
+            expect { subject }.to change(Spree::LineItem, :count).by(1)
+            expect(Spree::LineItem.last.price).to eq 0.8e2
+          end
+        end
+
+        context 'on the master variant' do
+          before { frequency.update(spree_variant: variant.product.master) }
+
+          it 'uses the master varaints frequency price for the line item' do
+            subject
+            expect(Spree::LineItem.last.price).to eq frequency.price
+          end
+        end
+      end
     end
 
     context 'without subscription_line_item params' do

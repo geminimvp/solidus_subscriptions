@@ -12,7 +12,7 @@ module Spree
       if params[:subscription_line_item]
         price = find_price(params[:variant_id])
         prepayment_duration = params[:subscription_line_item][:prepayment_duration].to_i
-        price = frequency.price * prepayment_duration if prepayment_duration > 0
+        price = price * prepayment_duration if prepayment_duration > 0
 
         @options[:price] = price
       end
