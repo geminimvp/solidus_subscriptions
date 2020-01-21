@@ -4,7 +4,7 @@ module SolidusSubscriptions
   module SubscriptionGenerator
     extend self
 
-    SubscriptionConfiguration = Struct.new(:interval_length, :interval_units, :end_date)
+    SubscriptionConfiguration = Struct.new(:interval_length, :interval_units, :end_date, :prepaid)
 
     # Create and persist a subscription for a collection of subscription
     #   line items
@@ -59,6 +59,7 @@ module SolidusSubscriptions
         subscription_line_item.interval_length,
         subscription_line_item.interval_units,
         subscription_line_item.end_date,
+        subscription_line_item.prepaid,
       )
     end
   end

@@ -134,10 +134,30 @@ module SolidusSubscriptions
     end
 
     def create_payment
+      source = subscription.prepaid ? store_credit : active_card
+      if subscription.prepaid
+        source = store_credit
+        payment_method = Spree::PaymentMethod::StoreCredit.first
+      else
+        source = active_card
+        payment_method = Config.default_gateway
+      end
+
       order.payments.create(
-        source: active_card,
+        source: source,
         amount: order.total,
-        payment_method: Config.default_gateway
+        payment_method: payment_method
+      )
+    end
+
+    def store_credit
+      Spree::StoreCredit.create(
+        user: subscription.user,
+        created_by: subscription.user,
+        currency: order.currency,
+        amount: order.total,
+        type_id: Spree::StoreCreditType.find_or_create_by(name: 'Non-expiring').id,
+        category: Spree::StoreCreditCategory.find_or_create_by(name: 'Default')
       )
     end
 

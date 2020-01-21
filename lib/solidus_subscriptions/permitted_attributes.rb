@@ -11,6 +11,8 @@ module SolidusSubscriptions
           ),
         }
 
+        Spree::PermittedAttributes.line_item_attributes << :price
+
         Spree::PermittedAttributes.user_attributes << {
           subscriptions_attributes: nested(subscription_attributes),
         }
